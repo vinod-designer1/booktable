@@ -9,12 +9,18 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.style.TextAppearanceSpan;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
@@ -24,7 +30,9 @@ import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.SaveCallback;
+import com.squareup.picasso.Picasso;
 
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
@@ -37,12 +45,10 @@ public class TimePrefActivity extends Activity {
 
     Context context;
 
-    Button datePickerBtn;
-    Button timePickerBtnbefore;
-    Button timePickerBtnafter;
     Boolean afterTime = true;
-
-    int year_x, month_x, day_x, hour_x, min_x;
+    int persons = 1;
+    Calendar cal;
+    Calendar today;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,107 +57,230 @@ public class TimePrefActivity extends Activity {
 
         context = this;
 
-        final Calendar cal = Calendar.getInstance();
-        year_x = cal.get(Calendar.YEAR);
-        month_x = cal.get(Calendar.MONTH);
-        day_x = cal.get(Calendar.DAY_OF_MONTH);
+        cal = Calendar.getInstance();
+        today = Calendar.getInstance();
 
-        hour_x = cal.get(Calendar.HOUR);
-        min_x = cal.get(Calendar.MINUTE);
+        String hotel_name = getIntent().getStringExtra("HotelName");
+        String hotel_url = getIntent().getStringExtra("HotelImageUrl");
 
-        final AbstractWheel people = (AbstractWheel) findViewById(R.id.tp_sw_hv_people);
-        people.setViewAdapter(new NumericWheelAdapter(this, 1, 20));
-        people.setCyclic(true);
-
-        showDateDialogButton();
-        showTimeDialogButton();
-
-        Button next_hotels = (Button) findViewById(R.id.btn_next);
-
-        next_hotels.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                DatePicker date = (DatePicker) v.findViewById(R.id.dp_date);
-                TimePicker time = (TimePicker) v.findViewById(R.id.tp_time);
-
-
-                SharedPreferences mypref = getSharedPreferences("timer", Activity.MODE_PRIVATE);
-                SharedPreferences.Editor myprefEditor = mypref.edit();
-                if (date != null)
-                    myprefEditor.putString("Date", date.toString());
-                if (time != null)
-                    myprefEditor.putString("Time", time.toString());
-                myprefEditor.putString("People", "");
-                myprefEditor.apply();
-
-                Intent hotelIntent = new Intent(context, HotelList.class);
-                context.startActivity(hotelIntent);
-            }
-        });
+        setImage(hotel_name, hotel_url);
+        showPeopleChooser();
+        showDateChooser();
+        showTimeChooser();
     }
 
-    private void showDateDialogButton() {
-        datePickerBtn = (Button) findViewById(R.id.tp_btn_select_date);
+    private void setImage(String hotelName, String pic) {
+        View main_header_view = findViewById(R.id.venue_header);
+        ImageView header_image_view = (ImageView) main_header_view.findViewById(R.id.background_image);
+        Picasso.with(context).load(pic).resize(400, 300)
+                .centerCrop().into(header_image_view);
 
-        datePickerBtn.setText(year_x + "/" + month_x + "/" + day_x);
-
-        datePickerBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showDialog(0);
-            }
-        });
+        TextView header_text_view = (TextView) main_header_view.findViewById(R.id.centered_text_view);
+        header_text_view.setText(hotelName);
     }
 
-    private void showTimeDialogButton() {
-        timePickerBtnafter = (Button) findViewById(R.id.tp_btn_time_after);
-        timePickerBtnafter.setText(hour_x + ":" + min_x);
-        timePickerBtnafter.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                afterTime = true;
-                showDialog(1);
-            }
-        });
+    private SpannableString getTextViewStyle(String view_text) {
+        SpannableString text = new SpannableString(view_text);
 
 
 
-        timePickerBtnbefore = (Button) findViewById(R.id.tp_btn_time_before);
-        timePickerBtnbefore.setText(hour_x + ":" + min_x);
-        timePickerBtnbefore.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                afterTime = false;
-                showDialog(1);
-            }
-        });
+        text.setSpan(new TextAppearanceSpan(context, R.style.ReqTableTextView), 0, view_text.indexOf('\n'), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        text.setSpan(new TextAppearanceSpan(context, R.style.ReqTableSubTextView), view_text.indexOf('\n'), view_text.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+        return text;
     }
 
+    private void showPeopleChooser() {
+        ImageButton people_up_btn = (ImageButton) findViewById(R.id.people_up_button);
+        ImageButton people_down_btn = (ImageButton) findViewById(R.id.people_down_button);
+        final TextView people_text = (TextView) findViewById(R.id.people_text);
 
-    protected Dialog onCreateDialog(int id) {
-        if (id == 0)
-            return  new DatePickerDialog(this, new DatePickerDialog.OnDateSetListener() {
-                @Override
-                public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-                    datePickerBtn.setText(year + "/" + monthOfYear + "/" + dayOfMonth);
-                    //Toast.makeText(context, year + "/" + monthOfYear + "/" + dayOfMonth, Toast.LENGTH_LONG).show();
+        final String suffix_1 = "person", suffix_2 = "people";
+
+
+        people_text.setText( getTextViewStyle(persons + "\n" + suffix_1), TextView.BufferType.SPANNABLE);
+
+        people_up_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                persons += 1;
+
+                Log.d("TimePref", "Up Persons " + persons);
+
+                if (persons > 1) {
+                    String view_text = persons + "\n" + suffix_2;
+
+                    SpannableString text = getTextViewStyle(view_text);
+
+                    people_text.setText(text, TextView.BufferType.SPANNABLE);
                 }
-            }, year_x, month_x, day_x);
-        else if (id == 1) {
-            return new TimePickerDialog(this, new TimePickerDialog.OnTimeSetListener() {
-                @Override
-                public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-                    if (afterTime) {
-                        timePickerBtnafter.setText(hourOfDay+":"+minute);
+
+            }
+        });
+
+
+        people_down_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d("TimePref", "Down Persons " + persons);
+                if (persons > 1) {
+                    persons -= 1;
+
+                    Log.d("TimePref", "Down Persons " + persons);
+
+                    String suffix = "";
+
+
+                    if (persons > 1) {
+                        suffix = suffix_2;
                     } else {
-                        timePickerBtnbefore.setText(hourOfDay+":"+minute);
+                        suffix = suffix_1;
                     }
-                }
-            }, hour_x, min_x, true);
-        }
 
-        return  null;
+                    String view_text = persons + "\n" + suffix;
+
+                    SpannableString text = getTextViewStyle(view_text);
+
+                    people_text.setText(text, TextView.BufferType.SPANNABLE);
+                }
+
+            }
+        });
     }
+
+    private String getDayString(int day) {
+        switch (day) {
+            case 1:
+                return "SUNDAY";
+            case 2:
+                return "MONDAY";
+            case 3:
+                return "TUESDAY";
+            case 4:
+                return "WEDNESDAY";
+            case 5:
+                return "THURSDAY";
+            case 6:
+                return "FRIDAY";
+            case 7:
+                return "SATURDAY";
+            default:
+                return "NO DATE";
+        }
+    }
+
+    private void showDateChooser() {
+        ImageButton date_up_btn = (ImageButton) findViewById(R.id.date_up_button);
+        ImageButton date_down_btn = (ImageButton) findViewById(R.id.date_down_button);
+        final TextView date_text_view = (TextView) findViewById(R.id.date_text);
+
+        final SimpleDateFormat formatter=new SimpleDateFormat("MMM dd, yyyy");
+
+        String date_text = "TODAY\n";
+        date_text += formatter.format(cal.getTime());
+
+        date_text_view.setText(getTextViewStyle(date_text));
+
+        date_up_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                cal.add(Calendar.DATE, 1);
+
+                String date_text = "";
+
+                int days = cal.get(Calendar.DAY_OF_YEAR) - today.get(Calendar.DAY_OF_YEAR);
+
+                if (days == 1) {
+                    date_text += "TOMORROW\n";
+                } else {
+                    date_text = getDayString(cal.get(Calendar.DAY_OF_WEEK)) + "\n";
+                }
+
+                date_text += formatter.format(cal.getTime());
+
+                date_text_view.setText(getTextViewStyle(date_text));
+
+            }
+        });
+
+        date_down_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+
+                String date_text = "";
+
+                int days = cal.get(Calendar.DAY_OF_YEAR) - today.get(Calendar.DAY_OF_YEAR);
+
+                if (days >= 1) {
+                    cal.add(Calendar.DATE, -1);
+
+                    if (days == 1)
+                        date_text += "TODAY\n";
+                    else if (days == 2)
+                        date_text += "TOMORROW\n";
+                    else
+                        date_text += getDayString(cal.get(Calendar.DAY_OF_WEEK)) + "\n";
+
+                    date_text += formatter.format(cal.getTime());
+
+                    date_text_view.setText(getTextViewStyle(date_text));
+                }
+
+
+
+            }
+        });
+    }
+
+    private void showTimeChooser() {
+        ImageButton late_time_up_btn = (ImageButton) findViewById(R.id.late_time_up_button);
+        ImageButton late_time_down_btn = (ImageButton) findViewById(R.id.late_time_down_button);
+        final TextView late_time_text_view = (TextView) findViewById(R.id.late_time_text);
+
+        final SimpleDateFormat formatter=new SimpleDateFormat("hh:mm");
+
+        String time_text = formatter.format(cal.getTime());
+        String time_zone = cal.get(Calendar.AM_PM) == 0 ? "AM" : "PM";
+
+        time_text += "\n" + time_zone;
+
+        late_time_text_view.setText(getTextViewStyle(time_text));
+
+        late_time_down_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                cal.add(Calendar.MINUTE, -30);
+
+                long time = cal.getTime().getTime() - today.getTime().getTime();
+
+                if (time < 0) {
+                    cal.add(Calendar.MINUTE, 30);
+                }
+
+                String time_text = formatter.format(cal.getTime());
+                String time_zone = cal.get(Calendar.AM_PM) == 0 ? "AM" : "PM";
+
+                time_text += "\n" + time_zone;
+                late_time_text_view.setText(getTextViewStyle(time_text));
+            }
+        });
+
+        late_time_up_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                cal.add(Calendar.MINUTE, 30);
+
+                String time_text = formatter.format(cal.getTime());
+                String time_zone = cal.get(Calendar.AM_PM) == 0 ? "AM" : "PM";
+
+                time_text += "\n" + time_zone;
+                late_time_text_view.setText(getTextViewStyle(time_text));
+            }
+        });
+
+    }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

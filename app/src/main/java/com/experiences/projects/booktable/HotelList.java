@@ -7,6 +7,7 @@ import android.content.res.Resources;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -18,7 +19,6 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.SearchView;
 import android.widget.TextView;
 
 import com.parse.FindCallback;
@@ -170,10 +170,10 @@ public class HotelList extends ActionBarActivity {
             final ParseObject hotel = (ParseObject) getItem(position);
 
             if (hotel != null) {
-                ImageView resPicView = (ImageView) v.findViewById(R.id.hl_iv_res_pic);
-                TextView resNameView = (TextView) v.findViewById(R.id.hl_tv_res_name);
-                TextView resLocView = (TextView) v.findViewById(R.id.hl_tv_res_location);
-                TextView resCuisinesView = (TextView) v.findViewById(R.id.hl_tv_res_cuisines);
+                ImageView resPicView = (ImageView) v.findViewById(R.id.venue_image);
+                TextView resNameView = (TextView) v.findViewById(R.id.venue_name);
+                TextView resLocView = (TextView) v.findViewById(R.id.venue_cuisine_location);
+                TextView resCuisinesView = (TextView) v.findViewById(R.id.venue_brag_text);
 
                 JSONArray resPicturesAry = hotel.getJSONArray("Pictures");
                 JSONArray resCuisinesAry = hotel.getJSONArray("Cuisines");

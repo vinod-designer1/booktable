@@ -111,7 +111,9 @@ public class HotelProfileActivity extends ActionBarActivity {
     private void fillHotelInfo(final ParseObject hotel) {
         String name = hotel.getString("Name");
         Double rating = hotel.getDouble("Rating");
-        JSONArray pictures = hotel.getJSONArray("Pictures");
+        final JSONArray pictures = hotel.getJSONArray("Pictures");
+        String desc = hotel.getString("Description");
+        String location = hotel.getString("LocationName");
 
         String pic = "";
         try {
@@ -120,21 +122,24 @@ public class HotelProfileActivity extends ActionBarActivity {
 
         }
 
-        ImageView iv_hotel_pic = (ImageView) findViewById(R.id.iv_hotel_pic);
+        View venu_image_view = (View) findViewById(R.id.include_venue_image);
+
+        ImageView iv_hotel_pic = (ImageView) venu_image_view.findViewById(R.id.background_image);
 
         Picasso.with(context).load(pic).resize(400, 300)
                 .centerCrop().into(iv_hotel_pic);
 
-        TextView tv_hotel_name = (TextView) findViewById(R.id.tv_hotel_name);
+        TextView tv_hotel_name = (TextView) findViewById(R.id.venue_info_text);
         tv_hotel_name.setText(name);
 
-        TextView tv_hotel_rating = (TextView) findViewById(R.id.tv_hotel_rating);
-        tv_hotel_rating.setText("Rating : " + String.valueOf(rating));
+        TextView tv_hotel_desc = (TextView) findViewById(R.id.venue_description);
+        tv_hotel_desc.setText(desc);
 
-        ListView lv_menu = (ListView) findViewById(R.id.lv_hotel_menu);
-        lv_menu.setAdapter(hotelItemAdapter);
+        TextView tv_hotel_loc = (TextView) findViewById(R.id.address_label);
+        tv_hotel_loc.setText(location);
 
-        Button btn_confirm = (Button) findViewById(R.id.btn_hotel_confirm);
+
+        Button btn_confirm = (Button) findViewById(R.id.continue_button);
         btn_confirm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -160,9 +165,19 @@ public class HotelProfileActivity extends ActionBarActivity {
                         @Override
                         public void done(ParseException e) {
                             if (e == null) {
-                                Intent reserveIntent = new Intent(context, SharedMenu.class);
+                                Intent reserveIntent = new Intent(context, TimePrefActivity.class);
                                 reserveIntent.putExtra("BookingId", userBooking.getObjectId());
                                 reserveIntent.putExtra("HotelId", hotel.getObjectId());
+                                reserveIntent.putExtra("HotelName", hotel.getString("Name"));
+
+                                String pic = "";
+                                try {
+                                    pic = pictures.getString(0);
+                                } catch (JSONException er) {
+
+                                }
+
+                                reserveIntent.putExtra("HotelImageUrl", pic);
                                 context.startActivity(reserveIntent);
                             } else {
                                 Log.d("HPERROR", e.getMessage());
