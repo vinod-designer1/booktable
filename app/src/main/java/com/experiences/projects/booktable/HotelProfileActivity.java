@@ -165,10 +165,13 @@ public class HotelProfileActivity extends ActionBarActivity {
                         @Override
                         public void done(ParseException e) {
                             if (e == null) {
-                                Intent reserveIntent = new Intent(context, TimePrefActivity.class);
-                                reserveIntent.putExtra("BookingId", userBooking.getObjectId());
-                                reserveIntent.putExtra("HotelId", hotel.getObjectId());
-                                reserveIntent.putExtra("HotelName", hotel.getString("Name"));
+
+                                SharedPreferences myPref = context.getSharedPreferences("MyPref", context.MODE_PRIVATE);
+                                SharedPreferences.Editor userPrefEditor = myPref.edit();
+
+                                userPrefEditor.putString("BookingId", userBooking.getObjectId());
+                                userPrefEditor.putString("HotelId", hotel.getObjectId());
+                                userPrefEditor.putString("HotelName", hotel.getString("Name"));
 
                                 String pic = "";
                                 try {
@@ -177,7 +180,12 @@ public class HotelProfileActivity extends ActionBarActivity {
 
                                 }
 
-                                reserveIntent.putExtra("HotelImageUrl", pic);
+                                userPrefEditor.putString("HotelImageUrl", pic);
+
+                                userPrefEditor.commit();
+
+                                Intent reserveIntent = new Intent(context, TimePrefActivity.class);
+
                                 context.startActivity(reserveIntent);
                             } else {
                                 Log.d("HPERROR", e.getMessage());

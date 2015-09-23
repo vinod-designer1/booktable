@@ -1,8 +1,36 @@
 <resources>
 
+    <!-- ActionBar styles -->
+    <style name="BookTableActionBar"
+        parent="@style/Widget.AppCompat.Light.ActionBar.Solid">
+        <item name="android:titleTextStyle">@style/BookTableTitleTextStyle</item>
+        <item name="android:background">@android:color/white</item>
+
+        <!-- Support library compatibility -->
+        <item name="titleTextStyle">@style/BookTableTitleTextStyle</item>
+        <item name="background">@android:color/white</item>
+    </style>
+
+    <style name="BookTableTitleTextStyle" parent="@style/TextAppearance.AppCompat.Widget.ActionBar.Title">
+        <item name="android:textColor">@color/reserve_gold</item>
+        <item name="android:textSize">21sp</item>
+    </style>
+
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="AppTheme" parent="@style/Theme.AppCompat">
         <!-- Customize your theme here. -->
+        <item name="android:windowActionBarOverlay">true</item>
+        <item name="android:actionBarStyle">@style/BookTableActionBar</item>
+        <item name="android:actionBarTabTextStyle">@style/BookTableTitleTextStyle</item>
+        <item name="android:actionMenuTextColor">@color/reserve_gold</item>
+        <item name="android:actionMenuTextAppearance">@style/BookTableTitleTextStyle</item>
+
+        <!-- Support library compatibility -->
+        <item name="actionBarStyle">@style/BookTableActionBar</item>
+        <item name="actionBarTabTextStyle">@style/BookTableTitleTextStyle</item>
+        <item name="actionMenuTextColor">@color/reserve_gold</item>
+        <item name="windowActionBarOverlay">true</item>
+        <item name="actionMenuTextAppearance">@style/BookTableTitleTextStyle</item>
     </style>
 
     <style name="Base.Widget.AppCompat.DrawerArrowToggle" parent="@style/Base.Widget.AppCompat.DrawerArrowToggle.Common">

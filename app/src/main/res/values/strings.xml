@@ -17,6 +17,8 @@
     <string name="title_activity_home">HomeActivity</string>
     <string name="title_activity_number_reg">NumberRegActivity</string>
 
+    <string name="menu_preorder">PreOrder</string>
+
     <string name="action_search">Search</string>
 
 

@@ -50,6 +50,10 @@ public class TimePrefActivity extends Activity {
     Calendar cal;
     Calendar today;
 
+    public int s = 0;
+
+    SharedPreferences.Editor myPrefEditor;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -60,13 +64,32 @@ public class TimePrefActivity extends Activity {
         cal = Calendar.getInstance();
         today = Calendar.getInstance();
 
-        String hotel_name = getIntent().getStringExtra("HotelName");
-        String hotel_url = getIntent().getStringExtra("HotelImageUrl");
+        final SharedPreferences myPref = context.getSharedPreferences("MyPref", context.MODE_PRIVATE);
+        myPrefEditor = myPref.edit();
+
+
+        String hotel_name = myPref.getString("HotelName", "");
+        String hotel_url = myPref.getString("HotelImageUrl", "");
 
         setImage(hotel_name, hotel_url);
         showPeopleChooser();
         showDateChooser();
         showTimeChooser();
+
+        Button request_table_btn = (Button) findViewById(R.id.continue_button);
+
+        request_table_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                myPrefEditor.putInt("Persons", persons);
+                myPrefEditor.putLong("Date", cal.getTimeInMillis());
+                myPrefEditor.commit();
+
+                Intent menuIntent = new Intent(context, SharedMenu.class);
+
+                context.startActivity(menuIntent);
+            }
+        });
     }
 
     private void setImage(String hotelName, String pic) {
@@ -239,6 +262,15 @@ public class TimePrefActivity extends Activity {
         final TextView late_time_text_view = (TextView) findViewById(R.id.late_time_text);
 
         final SimpleDateFormat formatter=new SimpleDateFormat("hh:mm");
+
+
+        int minutes = cal.get(Calendar.MINUTE);
+
+        if (minutes > 30) {
+            cal.add(Calendar.MINUTE, 60-minutes);
+        } else {
+            cal.add(Calendar.MINUTE, 30-minutes);
+        }
 
         String time_text = formatter.format(cal.getTime());
         String time_zone = cal.get(Calendar.AM_PM) == 0 ? "AM" : "PM";
